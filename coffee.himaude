@@ -1,0 +1,208 @@
+(homod THERMO-SYSTEM is
+	inc HYBRID-LIB .		--- provides effortDyn etc.
+	---inc PS-BASIC-CLASSES . 	--- provides flowDyn etc. Not actually needed.
+	
+	class ThermalEntity | heatCap : Float, mass : Float .
+	subclass ThermalEntity < PhysicalEntity .
+
+	class Room .
+	subclass Room < ThermalEntity .
+
+	class Coffee .
+	subclass Coffee < ThermalEntity .
+
+	class ThermalInteraction | area : Float .
+	subclass ThermalInteraction < PhysicalInteraction .
+
+	class Convection | convCoef : Float .
+	class Conduction | thermalCond : Float, thickness : Float .
+	subclass Convection Conduction < ThermalInteraction .
+
+	var TE : Oid .
+	vars SF, MASS, HC : Float . --- sum of heat flow, mass, heat cap
+
+	var CONV : Oid .
+	vars CC A T1 T2 : Float . --- Convection coef, area, temp of T1 and T2
+
+	var COND : Oid .
+	vars K A L : Float .
+
+	eq effortDyn(< TE : ThermalEntity | heatCap : HC, mass : MASS >, SF) 
+		= SF / (MASS * HC) .
+		
+	eq flowDyn(< CONV : Convection | area : A, convCoef : CC >, T1, T2) 
+		= CC * A * (T1 - T2) .
+
+	eq flowDyn(< COND : Conduction | area : A, thermalCond : K, thickness : L >, T1, T2) 
+		= (K * A * (T1 - T2)) / L .
+
+endhom)
+
+(homod SCENE is
+	pr FLOAT .
+	inc THERMO-SYSTEM .
+
+	op cs1 : -> GlobalSystem .
+	op cs2 : -> GlobalSystem .
+	op zzDataCol : -> Oid .
+	ops roomObj coffeeObj coffeeMug convObj condObj heaterObj : -> Oid .
+
+	op sm : -> Oid . --- System Manager required for HI-Maude
+
+eq cs1 = {
+				< roomObj : Room |	effort : 20.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no,
+											heatCap : 1.05,
+											mass : 38.4 >
+									
+				< coffeeObj : Coffee |	effort : 95.0,
+												effT : 0.0, 
+												effP : 0.0,
+												edb : no,
+												heatCap : 4.2,
+												mass : 0.45 >
+
+				< coffeeMug : Coffee |	effort : 0.0,
+												effT : 0.0, 
+												effP : 0.0,
+												edb : no,
+												heatCap : 4.2,
+												mass : 0.2 >
+
+				< convObj : Convection |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeObj, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.5, 
+											convCoef : 0.02 >
+								
+				< condObj : Conduction |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeObj, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.5, 
+											thermalCond : 0.0015, 
+											thickness : 0.005 >
+
+			< convObj : Convection |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeMug, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.5, 
+											convCoef : 0.02 >
+								
+				< condObj : Conduction |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeMug, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.5, 
+											thermalCond : 0.0015, 
+											thickness : 0.005 >
+
+
+				< zzDataCol : DataCollector | source : (convObj condObj), time : 0.0, result : "", dataShown : flow >
+			} .
+
+eq cs2 = {
+			< roomObj : Room |	effort : 20.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no,
+											heatCap : 1.05,
+											mass : 38.4 >
+									
+				< coffeeObj : Coffee |	effort : 95.0,
+												effT : 0.0, 
+												effP : 0.0,
+												edb : no,
+												heatCap : 4.2,
+												mass : 0.45 >
+
+				< convObj : Convection |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeObj, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.5, 
+											convCoef : 0.02 >
+								
+				< condObj : Conduction |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeObj, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.5, 
+											thermalCond : 0.0015, 
+											thickness : 0.005 >
+
+				< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+			} .
+
+endhom)
+
+**************************
+*** LTL model checking ***
+**************************
+(homod MODEL-CHECKING is
+	inc SCENE .
+	inc TIMED-MODEL-CHECKER .
+	
+	var REST : Configuration .
+	var E : Oid .
+	var  T : Float .
+
+	ops temp-ok : -> Prop [ctor] .
+
+	ceq {REST < E : Coffee | effort : T >}
+		 |= 
+		 temp-ok = true if T >= 65.0 and T <= 95.0 .
+endhom)
+
+eof .
+
+****************
+*** ANALYSIS ***
+****************
+
+--- Simulate from CS1 for 100 ticks
+
+(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+ 
+--- Simulate until the room and coffee are equal temperatures (~0.1c)
+
+(hfind earliest cs1 =>* {C:Configuration 
+	< coffeeObj : Coffee | effort : EFF:Float >
+	< roomObj : Room | effort : EFF2:Float >}
+   such that (abs(EFF:Float - EFF2:Float) < 0.1) 
+   using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+	   
+--- Search for states where room and coffee and equal temperatures
+---  ~0.1c for the first 100 ticks
+
+(hsearch [1] cs1 =>* {C:Configuration 
+	< coffeeObj : Coffee | effort : EFF:Float >
+	< roomObj : Room | effort : EFF2:Float >}
+	such that (abs(EFF:Float - EFF2:Float) < 0.1)
+	in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
+		 
+		 
+--- Timed LTL model checking
+---  Show that 'temp-ok' is always saisfied for the first 5 ticks
+---  temp-ok == temperature of coffee is between 65 and 95 degrees
+
+(hmc cs1 |=t [](temp-ok) in time <= 5 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+eof .

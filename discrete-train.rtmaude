@@ -1,0 +1,21 @@
+--- Discrete train example
+
+(tmod DISCRETE-TRAIN is protecting NAT-TIME-DOMAIN .
+	sort TrainState .
+	
+	op move : -> TrainState [ctor] .
+	op train : TrainState Nat -> System [ctor] .
+
+	var N : Time .
+
+	crl [travel] : {train(move,N)} => 
+	  {train(move,N + 1)} in time 1 if N < 500 .
+
+	rl [reset] : {train(move,500)} => {train(move,0)} .
+endtm)
+
+
+--- Timed rewrite simulation on train
+(trew {train(move,0)} in time <= 100 .)
+
+

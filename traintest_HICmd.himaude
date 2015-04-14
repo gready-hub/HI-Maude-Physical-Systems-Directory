@@ -1,0 +1,10 @@
+load hi-maude.maude .
+load traintest.himaude .
+---
+---Place your commands below
+
+(hrew cs1 in time <= 1 using euler stepsize 100.0 discreteswitch nonaccurate .)
+
+---Place your commands above
+---
+q .

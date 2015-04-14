@@ -1,0 +1,162 @@
+*** #############################
+*** A toy model gravitational fluid flow system.
+***
+*** Author: Gary Read
+***
+*** Last Edit: 03/04/2015
+***
+*** Here I am modeling a heating and cooling system with a room.
+*** The aim is to gain experience with the HI-Maude tool and 
+*** specifically with discrete events and timeCanAdvance function.
+***
+*** see page 22 from "..\Dissertation\Resources\techreport-casestudy.pdf"
+*** #############################
+
+(homod TEST is
+	pr FLOAT  .
+	inc HYBRID-LIB .		--- provides effortDyn etc.
+	inc PS-BASIC-CLASSES . 	--- provides flowDyn etc.
+	
+	*** Vessel filled status
+	sort FilledStatusType .
+	ops filled empty : -> FilledStatusType .
+
+	*** ###############################
+	***             Vessels
+	*** ###############################
+	class FluidEntity | area : Float, height : Float, status : FilledStatusType .
+	subclass FluidEntity < PhysicalEntity .
+	
+	var HTANK FTANK : Oid . --- Header/Footer tank objects
+	vars SF, A, H : Float . --- sum of fluid flow, mass, heat cap
+
+	eq effortDyn(< HTANK : FluidEntity | area : A, height : H, status : filled >, SF)
+		= SF .
+		
+	eq effortDyn(< HTANK : FluidEntity | area : A, height : H, status : empty >, SF)
+		= 0.0 .
+		
+	*** ###############################
+	***        Gravitation flow
+	*** ###############################
+	class GravitationalPipeFlow | orificeArea : Float, dischargeCoef : Float, headerTankArea : Float, gravAcc : Float .
+	subclass GravitationalPipeFlow < PhysicalInteraction .
+	
+	var GRAVFLOW : Oid . --- Grav pipe flow
+	vars HTAREA GA OA DCOEF V1 V2 : Float . --- header tank area, grav acc, orificeArea, dischargeCoef, volume of E1 and E2
+
+	ceq flowDyn(< GRAVFLOW : GravitationalPipeFlow | headerTankArea : HTAREA, gravAcc : GA, orificeArea : OA, dischargeCoef : DCOEF >, V1, V2) 
+			= DCOEF * OA * sqrt(2.0 * GA * (V1 / HTAREA))
+		if V1 >= 0 .
+
+	*** ###############################
+	***         Rewrite Rules
+	*** ###############################
+	crl[empty] :
+
+		< HTANK : FluidEntity | effort : V1, status : filled >
+		< GRAVFLOW : GravitationalPipeFlow | entity1 : HTANK, flow : SF >
+
+		=>
+		< HTANK : FluidEntity | status : empty >
+		< GRAVFLOW : GravitationalPipeFlow | flow : 0.0 >
+
+		if V1 <= 0.0 .
+		
+	*** ###############################
+	***       Discrete Events
+	*** ###############################
+	eq timeCanAdvanceMult(
+		< HTANK : FluidEntity | effort : V1 >
+		< GRAVFLOW : GravitationalPipeFlow | entity1 : HTANK >
+		=
+		(V1 >= 0.0) and timeCanAdvanceMult(REST) .
+		
+endhom)
+
+(homod SCENE is
+
+	pr FLOAT .
+	inc TEST .
+
+	ops cs1 cs2 : -> GlobalSystem .
+	op zzDataCol : -> Oid .
+	ops headerTank footerTank gravFlow : -> Oid .
+
+	op sm : -> Oid .
+
+	ops HTAREA HTHEIGHT FTAREA FTHEIGHT GA OAREA DCOEF : -> Float .
+
+	eq HTAREA = 2.0 * 2.0 .
+	eq HTHEIGHT = 1000.0 .
+	eq FTAREA = 0.5 * 0.5 .
+	eq FTHEIGHT = 0.0 .
+	eq GA = 9.81 .
+	eq OAREA = 0.157 .
+	eq DCOEF = 0.71 .
+
+	eq cs1 = {
+		< headerTank : FluidEntity |effort : 500000.0,
+									effT : 0.0, 
+									effP : 0.0,
+									edb : no,
+									area : HTAREA,
+									height : HTHEIGHT,
+									effort : HTAREA * HTHEIGHT	>
+							
+		< footerTank : FluidEntity |effort : 0.0,
+									effT : 0.0, 
+									effP : 0.0,
+									edb : no,
+									area : FTAREA,
+									height : FTHEIGHT >
+							
+		< gravFlow : GravitationalPipeFlow |	flow : 0.0,
+												entity1 : headerTank,
+												entity2 : footerTank,
+												floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+												edb : no,
+												contDyn : component,
+												headerTankArea : HTAREA,
+												gravAcc : GA,
+												orificeArea : OAREA,
+												dischargeCoef : DCOEF >
+
+		< zzDataCol : DataCollector | source : (headerTank footerTank), time : 0.0, result : "",dataShown : effort >
+		---< zzDataCol : DataCollector | source : (gravFlow), time : 0.0, result : "",dataShown : flow >
+	} .
+			
+	eq cs2 = {
+		< headerTank : FluidEntity |	effort : 500000.0,
+									effT : 0.0, 
+									effP : 0.0,
+									edb : no,
+									area : HTAREA,
+									height : HTHEIGHT,
+									effort : HTAREA * HTHEIGHT	>
+
+		< footerTank : FluidEntity |	effort : 0.0,
+									effT : 0.0, 
+									effP : 0.0,
+									edb : no,
+									area : FTAREA,
+									height : FTHEIGHT >
+
+		< gravFlow : GravitationalPipeFlow |	flow : 0.0,
+												entity1 : headerTank,
+												entity2 : footerTank,
+												floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+												edb : no,
+												contDyn : component,
+												headerTankArea : HTAREA,
+												gravAcc : GA,
+												orificeArea : OAREA,
+												dischargeCoef : DCOEF >
+
+		---< zzDataCol : DataCollector | source : (headerTank footerTank), time : 0.0, result : "",dataShown : effort >
+		< zzDataCol : DataCollector | source : (gravFlow), time : 0.0, result : "",dataShown : flow >
+	} .
+
+endhom)
+
+eof .

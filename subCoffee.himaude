@@ -1,0 +1,224 @@
+*** #############################
+*** Modelling flow of temperatures betwen a hot open vessel of
+*** coffee and a close room it is contained in.
+***
+*** Author: Gary Read
+***
+*** Last Edit: 03/04/2015
+***
+*** see page 22 from "..\Dissertation\Resources\techreport-casestudy.pdf"
+*** #############################
+
+(homod THERMO-SYSTEM is
+	inc HYBRID-LIB .		--- provides effortDyn etc.
+	
+	sort onOffType .
+	ops on off : -> onOffType .
+	
+	class ThermalEntity | heatCap : Float, mass : Float .
+	subclass ThermalEntity < PhysicalEntity .
+	
+	class ThermalInteraction | area : Float .
+	subclass ThermalInteraction < PhysicalInteraction .
+	
+	class ThermalFlowSource .
+	subclass ThermalFlowSource < FlowSource .
+	
+	class Room .
+	class Coffee .
+	subclass Room Coffee < ThermalEntity .
+	
+	class Convection | convCoef : Float .
+	subclass Convection < ThermalInteraction .
+
+	class Conduction | thermalCond : Float, thickness : Float .
+	subclass Conduction < ThermalInteraction .
+	
+	class Heater | status : onOffType, lowTemp : Float, highTemp : Float, heatFlowRate : Float .
+	subclass Heater < ThermalFlowSource .
+	
+	var TE : Oid .
+	vars SF MASS HC : Float . --- sum of heat flow, mass, heat cap
+	var HTR : Oid .
+	vars HTRRT EFF LT HT : Float . --- Heater flow rate, effort/temp, low temp, high temp
+	var CONV : Oid .
+	vars CC A T1 T2 : Float . --- Convection coef, area, temp of T1 and T2
+	var COND : Oid .
+	vars K A L : Float .
+	
+	*** Thermal Entity, coffee and room
+	eq effortDyn(< TE : ThermalEntity | heatCap : HC, mass : MASS >, SF) 
+		= SF / (MASS * HC) .
+	
+	*** Heater for the coffee
+	eq flowDyn (< HTR : Heater | status : on, heatFlowRate : HTRRT >, EFF)
+		= 2.5 .
+		
+	eq flowDyn (< HTR : Heater | status : off, heatFlowRate : HTRRT >, EFF)
+		= 0.0 .
+		
+	*** Convection
+	eq flowDyn(< CONV : Convection | area : A, convCoef : CC >, T1, T2) 
+		= CC * A * (T1 - T2) .
+
+	*** Conduction
+	eq flowDyn(< COND : Conduction | area : A, thermalCond : K, thickness : L >, T1, T2) 
+		= (K * A * (T1 - T2)) / L .
+		
+	*** ###############################
+	***         Rewrite Rules
+	*** ###############################
+	vars COFFEE : Oid .
+	vars TEMP : Float .
+	var STATE : onOffType .
+	vars CONFIG REST : Configuration . *** Placeholders?
+	
+	crl[heater-off] :
+
+		< COFFEE : Coffee | effort : TEMP >
+		< HTR : Heater | entity : COFFEE, status : on, highTemp : HT >
+
+		=>
+		< COFFEE : Coffee | >
+		< HTR : Heater | status : off >
+
+		if TEMP >=  HT .
+   
+	crl[heater-on] : 
+
+		< COFFEE : Coffee | effort : TEMP > 
+		< HTR : Heater | entity : COFFEE, status : off, lowTemp : LT > 
+
+		=>
+		< COFFEE : Coffee | >    
+		< HTR : Heater | status : on > 
+
+		if TEMP <= LT .
+	
+	*** ###############################
+	***       Discrete Events
+	*** ###############################
+	eq timeCanAdvanceMult(
+		< HTR : Heater | entity : COFFEE, status : STATE, lowTemp : LT, highTemp : HT >
+		< COFFEE : Coffee | effort : TEMP > REST )
+		= 
+		((STATE == on and TEMP <= HT) or (STATE == off and TEMP >= LT)) and timeCanAdvanceMult(REST) .
+		
+endhom)
+
+(homod SCENE is
+	pr FLOAT .
+	inc THERMO-SYSTEM .
+
+	ops cs1 cs2 : -> GlobalSystem .
+	op zzDataCol : -> Oid .
+	ops coffeeObj roomObj convObj condObj heatObj : -> Oid .
+
+	op sm : -> Oid . --- System Manager required for HI-Maude
+
+	eq cs2 = {
+				< coffeeObj : Coffee |	effort : 5.0,
+												effT : 0.0, 
+												effP : 0.0,
+												edb : no,
+												heatCap : 4.2,
+												mass : 0.45 >
+									
+				< roomObj : Room |	effort : 50.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no,
+											heatCap : 1.05,
+											mass : 38.4 >
+
+				< convObj : Convection |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeObj, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.05, 
+											convCoef : 0.02 >
+
+				< condObj : Conduction |	flow : 0.0,
+											entity1 : roomObj,
+											entity2 : coffeeObj,
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.05,
+											thermalCond : 0.0015,
+											thickness : 0.005 >
+
+				< heatObj : Heater | flow : 0.0,
+									entity : coffeeObj,
+									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+									edb : no,
+									contDyn : component,
+									status : on,
+									lowTemp : 65.0,
+									highTemp : 75.0,
+									heatFlowRate : 2.5 >
+
+				< zzDataCol : DataCollector | source : (heatObj condObj convObj), time : 0.0, result : "", dataShown : flow >
+			} .
+
+	eq cs1 = {
+				< coffeeObj : Coffee |	effort : 5.0,
+												effT : 0.0, 
+												effP : 0.0,
+												edb : no,
+												heatCap : 4.2,
+												mass : 0.45 >
+									
+				< roomObj : Room |	effort : 50.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no,
+											heatCap : 1.05,
+											mass : 38.4 >
+
+				< convObj : Convection |	flow : 0.0,
+											entity1 : roomObj, 
+											entity2 : coffeeObj, 
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.05, 
+											convCoef : 0.02 >
+
+				< condObj : Conduction |	flow : 0.0,
+											entity1 : roomObj,
+											entity2 : coffeeObj,
+											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+											edb : no,
+											contDyn : component,
+											area : 0.05,
+											thermalCond : 0.0015,
+											thickness : 0.005 >
+
+				< heatObj : Heater | flow : 0.0,
+									entity : coffeeObj,
+									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+									edb : no,
+									contDyn : component,
+									status : on,
+									lowTemp : 65.0,
+									highTemp : 75.0,
+									heatFlowRate : 2.5 >
+
+				< zzDataCol : DataCollector | source : (coffeeObj roomObj), time : 0.0, result : "", dataShown : effort >
+			} .
+
+endhom)
+
+eof .
+
+****************
+*** ANALYSIS ***
+****************
+
+--- Simulate from CS1 for 100 ticks
+(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+eof .

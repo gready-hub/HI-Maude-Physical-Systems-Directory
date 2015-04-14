@@ -1,0 +1,20 @@
+load hi-maude.maude .
+load fluidsystem.himaude .
+---
+---Place your commands below
+
+*** Simulate from cs1 for 100 ticks
+---(hrew cs1 in time <= 500 using euler stepsize 0.1 discreteswitch nonaccurate .)
+---(hrew cs2 in time <= 500 using euler stepsize 0.1 discreteswitch nonaccurate .)
+---(hrew cs1 in time <= 500 using euler stepsize 1.0 discreteswitch nonaccurate .)
+---(hrew cs2 in time <= 500 using euler stepsize 1.0 discreteswitch nonaccurate .)
+---(hrew cs1 in time <= 500 using euler stepsize 10.0 discreteswitch nonaccurate .)
+---(hrew cs2 in time <= 500 using euler stepsize 10.0 discreteswitch nonaccurate .)
+
+---(hrew cs2 in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs2 in time <= 500 using euler stepsize 0.01 discreteswitch nonaccurate .)
+---(hrew cs2 in time <= 100 using euler stepsize 0.001 discreteswitch nonaccurate .)
+
+---Place your commands above
+---
+q .

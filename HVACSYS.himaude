@@ -1,0 +1,270 @@
+*** #############################
+*** A toy model HVAC system.
+***
+*** Author: Gary Read
+***
+*** Start: 01/03/2015 
+*** Last Edit: 03/04/2015
+***
+*** Here I am modeling a heating and cooling system with a room.
+*** The aim is to gain experience with the HI-Maude tool and 
+*** specifically with discrete events and timeCanAdvance function.
+***
+*** see page 22 from "..\Dissertation\Resources\techreport-casestudy.pdf"
+*** #############################
+
+(homod HVACSYS is
+	pr FLOAT .
+	inc HYBRID-LIB .
+	
+	*** Heater states
+	sort onOffStatusType .
+	ops heating cooling off : -> onOffStatusType .
+	
+	*** Constant variables
+	op heatingFlowRate : -> Float .
+	op coolingFlowRate : -> Float .
+	op offFlowRate : -> Float .
+	op lowTempVal : -> Float .
+	op highTempVal : -> Float .
+	
+	eq heatingFlowRate = 10.0 .
+	eq coolingFlowRate = -5.0 .
+	eq offFlowRate = 0.0 .
+	eq lowTempVal = 50.0 .
+	eq highTempVal = 100.0 .
+	
+	vars CONFIG REST : Configuration . *** Placeholders?
+	
+	*** ###############################
+	***             Room
+	*** ###############################
+	vars ROOM : Oid . *** HVAC and room object id's
+	vars TEMP EFF SF : Float . *** Effort, heat flow rate, sum of flows
+	
+	class Room .
+	subclass Room < PhysicalEntity .
+	
+	*** Room dynamics
+	eq effortDyn(< ROOM : Room | >, SF) 
+		= SF .
+		
+	*** ###############################
+	***             Heater
+	*** ###############################
+	vars HTR : Oid .
+	var S : onOffStatusType .
+	vars HTRRT HTRSP HT LT : Float .
+
+	class Heater | state : onOffStatusType, heatFlowRate : Float, lowTemp : Float, highTemp : Float .
+	subclass Heater < FlowSource .
+
+	*** Heater dynamics
+	eq flowDyn(< HTR : Heater | state : heating, heatFlowRate : HTRRT, lowTemp : LT, highTemp : HT >, EFF) = 
+	   heatingFlowRate .
+	   
+	eq flowDyn(< HTR : Heater | state : cooling, heatFlowRate : HTRRT, lowTemp : LT, highTemp : HT >, EFF) = 
+	   coolingFlowRate .
+
+	eq flowDyn(< HTR : Heater | state : off, heatFlowRate : HTRRT, lowTemp : LT, highTemp : HT >, EFF) = 
+		offFlowRate .
+
+	*** ###############################
+	***         Rewrite Rules
+	*** ###############################
+	crl[heater-cooling] :
+
+		< ROOM : Room | effort : TEMP >
+		< HTR : Heater | entity : ROOM, state : heating, highTemp : HT >
+
+		=>
+		< ROOM : Room | >
+		< HTR : Heater | state : cooling, heatFlowRate : -5.0 >
+
+		if TEMP >=  HT .
+   
+	crl[heater-on] : 
+
+		< ROOM : Room | effort : TEMP > 
+		< HTR : Heater | entity : ROOM, state : cooling, lowTemp : LT > 
+
+		=>
+		< ROOM : Room | >    
+		< HTR : Heater | state : heating, heatFlowRate : 1.0 > 
+
+		if TEMP <= LT .
+	
+	*** ###############################
+	***       Discrete Events
+	*** ###############################
+	eq timeCanAdvanceMult(
+		< HTR : Heater | entity : ROOM, state : S, lowTemp : LT, highTemp : HT >
+		< ROOM : Room | effort : TEMP > REST )
+		= 
+		((S == heating and TEMP <= HT) or (S == cooling and TEMP >= LT)) and timeCanAdvanceMult(REST) .
+
+	---(  This is the same as above
+	--- eq timeCanAdvanceMult(
+		--- < HTR : Heater | entity : ROOM, state : heating, lowTemp : LT, highTemp : HT >
+		--- < ROOM : Room | effort : TEMP > REST )
+		--- = 
+		--- (TEMP <= HT) and timeCanAdvanceMult(REST) .
+		
+	--- eq timeCanAdvanceMult(
+		--- < HTR : Heater | entity : ROOM, state : cooling, lowTemp : LT, highTemp : HT >
+		--- < ROOM : Room | effort : TEMP > REST ) 
+		--- = 
+		--- (TEMP >= LT) and timeCanAdvanceMult(REST) .
+	---)
+
+endhom)
+
+*** ########################################################
+
+(homod SCENE is
+	inc HVACSYS .
+
+	op sm : -> Oid . *** System Manager required for HI-Maude
+	
+	ops cs1 cs1Eff cs1Flow : -> GlobalSystem . *** Case studie objects
+	op zzDataCol : -> Oid . *** Data collector 
+
+	*** Case study one: Room with Heater, maintaining temp of 50c <-> 100c
+	ops ROOM HTR : -> Oid .
+	eq cs1 = {
+				< ROOM : Room |	effort : 0.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no >
+
+				< HTR : Heater |	flow : 0.0,
+									entity : ROOM,
+									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+									edb : no,
+									contDyn : component,
+									state : heating,
+									heatFlowRate : 0.0,
+									lowTemp : lowTempVal,
+									highTemp : highTempVal >
+
+				< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
+	} .
+
+eq cs1Eff = {
+				< ROOM : Room |	effort : 0.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no >
+
+				< HTR : Heater |	flow : 0.0,
+									entity : ROOM,
+									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+									edb : no,
+									contDyn : component,
+									state : heating,
+									heatFlowRate : 0.0,
+									lowTemp : lowTempVal,
+									highTemp : highTempVal >
+
+				< zzDataCol : DataCollector | source : (ROOM), time : 0.0, result : "", dataShown : effort >
+	} .
+
+eq cs1Flow = {
+				< ROOM : Room |	effort : 0.0,
+											effT : 0.0, 
+											effP : 0.0,
+											edb : no >
+
+				< HTR : Heater |	flow : 0.0,
+									entity : ROOM,
+									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+									edb : no,
+									contDyn : component,
+									state : heating,
+									heatFlowRate : 0.0,
+									lowTemp : lowTempVal,
+									highTemp : highTempVal >
+
+				< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
+	} .
+
+endhom)
+
+*** ########################################################
+
+(homod ROOM-HEATER-MODEL-CHECKING is
+	inc TIMED-MODEL-CHECKER .
+	inc HVACSYS .
+	inc SCENE .
+	
+	vars ROOM HTR : Oid .
+	var REST : Configuration .
+	var S : onOffStatusType .
+	vars TEMP LT HT : Float .
+	
+	op temp-threshhold : -> Float .
+	eq temp-threshhold = 5.0 .
+	
+	ops temp-ok temp-hot temp-cold : -> Prop [ctor] .
+	ops hvac-operating hvac-off : -> Prop [ctor] .
+	
+	*** hvac-operating
+	ceq {REST < HTR : Heater | state : S >}
+		|=
+		hvac-operating = true if (S == heating) or (S == cooling) .
+		
+	*** hvac-off
+	ceq {REST < HTR : Heater | state : S >}
+		|=
+		hvac-off = true if (S == off) .
+	
+	*** temp-ok
+	ceq {REST < ROOM : Room | effort : TEMP >
+			  < HTR : Heater | entity : ROOM, lowTemp : LT, highTemp : HT >}
+		|=
+		temp-ok = true if (abs(TEMP - HT) < temp-threshhold)
+					   and 
+						  (abs(TEMP - LT) < temp-threshhold) .
+	
+	*** temp-hot
+	ceq {REST < ROOM : Room | effort : TEMP >
+			  < HTR : Heater | entity : ROOM, highTemp : HT >}
+		|=
+		temp-hot = true if (abs(TEMP - HT) < temp-threshhold) .
+		
+	*** temp-cold
+	ceq {REST < ROOM : Room | effort : TEMP >
+			  < HTR : Heater | entity : ROOM, lowTemp : LT >}
+		|=
+		temp-cold = true if (abs(TEMP - LT) < temp-threshhold) .
+		
+endhom)
+
+eof .
+
+****************
+*** ANALYSIS ***
+****************
+
+*** Simulate from cs1 for 100 ticks
+(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+*** Search for when the heater is in the off state = no solution
+(hsearch [1] cs1 =>* {C:Configuration 
+	< HTR : Heater | state : ST:onOffStatusType >}
+	such that (ST:onOffStatusType == off)
+	in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+	
+*** Find earliest time the heater state is cooling = ~10 ticks
+(hfind earliest cs1 =>* {C:Configuration
+	< HTR : Heater | state : ST:onOffStatusType >}
+	such that (ST:onOffStatusType == cooling)
+	using euler stepsize 1.0 discreteswitch nonaccurate .)
+	
+*** Check that the HVAC is always either heating or cooling = true
+(hmc cs1 |=t [](hvac-operating) in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+*** Check that the heater is never off (Similar to above) = true
+(hmc cs1 |=t [](~ hvac-off) in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+eof .

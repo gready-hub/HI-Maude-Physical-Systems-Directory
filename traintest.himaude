@@ -1,0 +1,95 @@
+(homod UTILS is
+	pr FLOAT .
+	
+	op segmentLength : -> Float .
+	op accRate : -> Float .
+	op brakingRate : -> Float .
+	op maxSpeed : -> Float .
+	op stoppedSpeed : -> Float .
+	
+	eq segmentLength = 1000.0 . --- meters
+	eq accRate = 1.0 . --- m/s^2
+	eq brakingRate = -1.0 . --- m/s^2
+	eq maxSpeed = 27.7 . --- m/s 100 km/h
+	eq stoppedSpeed = 0.0 . --- m/s
+	
+endhom) --- END UTILS
+
+***################################
+
+(homod CLASS-DEF is 
+	inc HYBRID-LIB .
+	inc UTILS .
+	
+	--- Train status type
+	sort TrainStatus .
+	ops constant stopped accelerating braking : -> TrainStatus [ctor] .
+	
+	--- Track status type
+	sort TrackStatus .
+	ops free occupied : -> TrackStatus [ctor] .
+
+	***================================
+	class Segment |	length : Float .
+	
+	subclass Segment < PhysicalEntity .
+		 
+	***================================
+	class Train |	trainStatus : TrainStatus,
+					length : Float,
+					acc : Float .
+	
+	subclass Train < PhysicalEntity .
+	
+	***================================
+	class Translation .
+	
+	subclass Translation < PhysicalInteraction .
+	
+endhom) --- END CLASS-DEF
+ 
+***################################
+
+(homod INIT-TRAIN is
+	inc CLASS-DEF .
+	
+	op sm : -> Oid .
+	
+	op cs1 : -> GlobalSystem .
+	op zzDataCol : -> Oid .
+	
+	ops train segment translation : -> Oid .
+	
+	eq cs1 = { 
+		< train : Train  | effort : 0.0,
+								effT : 0.0, 
+								effP : 0.0,
+								edb : no,
+								 >
+
+		< segment : Segment | effort : 0.0,
+								effT : 0.0, 
+								effP : 0.0,
+								edb : no,
+								 >
+		
+		< translation : Translation | flow : 0.0,
+								entity1 : roomObj,
+								entity2 : coffeeObj,
+								floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+								edb : no,
+								contDyn : component,
+								 >
+		
+		< zzDataCol : DataCollector | source : (train), time : 0.0, result : "", dataShown : flow >
+	} .
+	
+endhom)
+
+***################################
+
+***(hrew cs1 in time <= 1 using euler stepsize 100.0 discreteswitch nonaccurate .)
+
+***################################
+
+eof .

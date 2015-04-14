@@ -1,0 +1,19 @@
+(tomod EXAMPLE1 is protecting NAT-TIME-DOMAIN .
+
+msg msgCount : Nat -> Msg .
+class Counter | count : Nat .
+class Reader | count : Nat .
+var N : Nat .
+var O : Oid .
+var REST : Configuration .
+
+rl [ doCount] : {< O : Counter | count : N > REST } =>
+	{ msgCount (N + 1 rem 500)
+	< O : Counter | count : (N + 1) rem 500 > REST } in time 1 .
+
+rl [ readCount ] : { msgCount (N) < O : Reader | > REST } =>
+	{< O : Reader | count : N > REST } .
+	
+endtom)
+
+(trew {< myCounter : Counter | count : 0 > < myReader : Reader | count : 0 >} in time <= 2 .)

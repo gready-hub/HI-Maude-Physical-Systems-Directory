@@ -1,0 +1,27 @@
+load hi-maude.maude .
+load coffee.himaude .
+---
+---Place your commands below
+
+(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs2 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+(hfind earliest cs1 =>* {C:Configuration 
+	< coffeeObj : Coffee | effort : EFF:Float >
+	< roomObj : Room | effort : EFF2:Float >}
+   such that (abs(EFF:Float - EFF2:Float) < 0.1) 
+   using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+(hsearch [1] cs1 =>* {C:Configuration 
+	< coffeeObj : Coffee | effort : EFF:Float >
+	< roomObj : Room | effort : EFF2:Float >}
+	such that (abs(EFF:Float - EFF2:Float) < 0.1)
+	in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
+
+(hmc cs1 |=t [](temp-ok) in time <= 5 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+(hrew cs1 in time <= 10 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
+---Place your commands above
+---
+q .
