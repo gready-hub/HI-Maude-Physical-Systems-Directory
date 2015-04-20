@@ -3,6 +3,10 @@ load subCoffee.himaude .
 ---
 ---Place your commands below
 
+--- Simulate from CS1 for 100 ticks
+(hrew cs1-effort in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs1-flow in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+
 ---Place your commands above
 ---
 q .

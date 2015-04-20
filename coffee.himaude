@@ -1,6 +1,20 @@
+*** #############################
+*** Closed thermal system model, cups of coffee in a room.
+***
+*** Author: Gary Read
+***
+*** Start: 20/01/2015 
+*** Last Edit: 20/04/2015
+***
+*** Using the features of HI-Maude to describe the flow of effort
+*** between different physical thermal objects, in thus case room
+*** and cups of coffee. We also try out some object oriented behviour
+*** that HI-Maude has.
+***
+*** #############################
+
 (homod THERMO-SYSTEM is
 	inc HYBRID-LIB .		--- provides effortDyn etc.
-	---inc PS-BASIC-CLASSES . 	--- provides flowDyn etc. Not actually needed.
 	
 	class ThermalEntity | heatCap : Float, mass : Float .
 	subclass ThermalEntity < PhysicalEntity .
@@ -49,7 +63,8 @@ endhom)
 
 	op sm : -> Oid . --- System Manager required for HI-Maude
 
-eq cs1 = {
+	--- Multiple coffee objects
+	eq cs1 = {
 				< roomObj : Room |	effort : 20.0,
 											effT : 0.0, 
 											effP : 0.0,
@@ -113,7 +128,8 @@ eq cs1 = {
 				< zzDataCol : DataCollector | source : (convObj condObj), time : 0.0, result : "", dataShown : flow >
 			} .
 
-eq cs2 = {
+	--- Single coffee object
+	eq cs2 = {
 			< roomObj : Room |	effort : 20.0,
 											effT : 0.0, 
 											effP : 0.0,
@@ -169,40 +185,5 @@ endhom)
 		 |= 
 		 temp-ok = true if T >= 65.0 and T <= 95.0 .
 endhom)
-
-eof .
-
-****************
-*** ANALYSIS ***
-****************
-
---- Simulate from CS1 for 100 ticks
-
-(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
- 
---- Simulate until the room and coffee are equal temperatures (~0.1c)
-
-(hfind earliest cs1 =>* {C:Configuration 
-	< coffeeObj : Coffee | effort : EFF:Float >
-	< roomObj : Room | effort : EFF2:Float >}
-   such that (abs(EFF:Float - EFF2:Float) < 0.1) 
-   using euler stepsize 1.0 discreteswitch nonaccurate .)
-
-	   
---- Search for states where room and coffee and equal temperatures
----  ~0.1c for the first 100 ticks
-
-(hsearch [1] cs1 =>* {C:Configuration 
-	< coffeeObj : Coffee | effort : EFF:Float >
-	< roomObj : Room | effort : EFF2:Float >}
-	such that (abs(EFF:Float - EFF2:Float) < 0.1)
-	in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
-		 
-		 
---- Timed LTL model checking
----  Show that 'temp-ok' is always saisfied for the first 5 ticks
----  temp-ok == temperature of coffee is between 65 and 95 degrees
-
-(hmc cs1 |=t [](temp-ok) in time <= 5 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 eof .

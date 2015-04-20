@@ -1,0 +1,48 @@
+% Highlighting for your Maude, Real-Time Maude, Maude files.
+% 
+% Source: http://www.github.com/garyyread
+% Author: Gary Read
+% Contact: garyyread@gmail.com
+%
+% Using this HI-Maude, Real-Time Maude, Maude listing:
+% \lstinputlisting[language = maude]{SOURCE.maude}
+%
+% or
+%
+% \begin{lstlisting}[language=maude]
+% ***
+% *** Maude Source Code
+% ***
+% \end{lstlisting}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{delimiterColor}{HTML}{B65E47}
+\definecolor{numberColor}{HTML}{FF0000}
+\definecolor{commentColor}{HTML}{008000}
+\definecolor{keyColor}{HTML}{002BFF}
+
+\lstdefinelanguage{himaude}
+{
+	language=himaude,
+	numbers=left,
+	breaklines=true,
+	extendedchars=true,
+	tabsize=2,
+	frame=shadowbox,
+	columns=fullflexible,
+	showtabs=false,
+	showstringspaces=false,
+	showspaces=false,
+	showstringspaces=false,
+	identifierstyle={\ttfamily},
+	keywordstyle={\color{keyColor}},
+	ndkeywordstyle={\color{keyColor}},
+	stringstyle={\color{delimiterColor}},
+	commentstyle={\color{commentColor}},
+	ndkeywords={Int, Bool, String},
+	keywords={in, load, pr, protecting, sort, sorts, op, ops, var, vars,eq, cq, ceq,endfm, fmod, is, mod, endm, load, =, ==, =/=, euler, discreteswitch, nonaccurate, mp, rk4, accurate, init, exp, abs, true, false, nil, ctor, PhysicalEntityStar, PhysicalInteraction, PhysicalEntity, PhysicalEntityPC1, FlowSource, SysMan, effortDyn, flowDyn, Object, Oid, assoc, id, DataCollector, Rat, NzNat, frac, trunc, if, else, class, load, homod, endhom, eof, var, vars, eq, op, ops, pr, inc, protecting, including, ceq, is, tomod, endtom, msg, rl, crl, trew, hfind, hsearch, tsearch, hmc, hrew, time, earliest, such, that, subclass, Prop, omod, sort, subsort, not, endom, fi, msgs, fmod, endfm, hfrew, then, mod, and, or, endm, endtm, in, out, set, trace, exclude, loop, show, using, stepsize, tick, Oid, Nat, Float, Configuration, String, NzNat},
+	morecomment={[l]{***}},
+	morecomment={[l]{---}},
+}

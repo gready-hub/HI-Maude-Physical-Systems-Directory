@@ -126,7 +126,7 @@ endhom)
 
 	op sm : -> Oid . *** System Manager required for HI-Maude
 	
-	ops cs1 cs1Eff cs1Flow : -> GlobalSystem . *** Case studie objects
+	ops cs1 cs1-effort cs1-flow : -> GlobalSystem . *** Case studie objects
 	op zzDataCol : -> Oid . *** Data collector 
 
 	*** Case study one: Room with Heater, maintaining temp of 50c <-> 100c
@@ -150,7 +150,7 @@ endhom)
 				< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
 	} .
 
-eq cs1Eff = {
+	eq cs1-effort = {
 				< ROOM : Room |	effort : 0.0,
 											effT : 0.0, 
 											effP : 0.0,
@@ -169,7 +169,7 @@ eq cs1Eff = {
 				< zzDataCol : DataCollector | source : (ROOM), time : 0.0, result : "", dataShown : effort >
 	} .
 
-eq cs1Flow = {
+	eq cs1-flow = {
 				< ROOM : Room |	effort : 0.0,
 											effT : 0.0, 
 											effP : 0.0,
@@ -239,32 +239,5 @@ endhom)
 		temp-cold = true if (abs(TEMP - LT) < temp-threshhold) .
 		
 endhom)
-
-eof .
-
-****************
-*** ANALYSIS ***
-****************
-
-*** Simulate from cs1 for 100 ticks
-(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
-
-*** Search for when the heater is in the off state = no solution
-(hsearch [1] cs1 =>* {C:Configuration 
-	< HTR : Heater | state : ST:onOffStatusType >}
-	such that (ST:onOffStatusType == off)
-	in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
-	
-*** Find earliest time the heater state is cooling = ~10 ticks
-(hfind earliest cs1 =>* {C:Configuration
-	< HTR : Heater | state : ST:onOffStatusType >}
-	such that (ST:onOffStatusType == cooling)
-	using euler stepsize 1.0 discreteswitch nonaccurate .)
-	
-*** Check that the HVAC is always either heating or cooling = true
-(hmc cs1 |=t [](hvac-operating) in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
-
-*** Check that the heater is never off (Similar to above) = true
-(hmc cs1 |=t [](~ hvac-off) in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 eof .

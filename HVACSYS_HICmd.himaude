@@ -4,12 +4,10 @@ load HVACSYS.himaude .
 ---Place your commands below
 
 *** Simulate from cs1 for 100 ticks
-(hrew cs1Eff in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
-(hrew cs1Flow in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
-(hrew cs1Eff in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
-(hrew cs1Flow in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
----(hrew cs1Eff in time <= 100 using euler stepsize 10.0 discreteswitch nonaccurate .)
----(hrew cs1Flow in time <= 100 using euler stepsize 10.0 discreteswitch nonaccurate .)
+(hrew cs1-effort in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs1-flow in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs1-effort in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs1-flow in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 *** Search for when the heater is in the off state = no solution
 (hsearch [1] cs1 =>* {C:Configuration 

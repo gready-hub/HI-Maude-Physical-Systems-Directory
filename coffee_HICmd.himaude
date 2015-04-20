@@ -3,24 +3,37 @@ load coffee.himaude .
 ---
 ---Place your commands below
 
-(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
-(hrew cs2 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+****************
+*** ANALYSIS ***
+****************
 
+--- Simulate CS2 for 100 ticks
+(hrew cs2 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+ 
+--- Simulate CS1 for 100 ticks, 2 coffee cups in the room
+(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+ 
+--- Simulate until the room and coffee are equal temperatures (~0.1c)
 (hfind earliest cs1 =>* {C:Configuration 
 	< coffeeObj : Coffee | effort : EFF:Float >
 	< roomObj : Room | effort : EFF2:Float >}
    such that (abs(EFF:Float - EFF2:Float) < 0.1) 
    using euler stepsize 1.0 discreteswitch nonaccurate .)
 
+	   
+--- Search for states where room and coffee and equal temperatures
+---  ~0.1c for the first 100 ticks
 (hsearch [1] cs1 =>* {C:Configuration 
 	< coffeeObj : Coffee | effort : EFF:Float >
 	< roomObj : Room | effort : EFF2:Float >}
 	such that (abs(EFF:Float - EFF2:Float) < 0.1)
 	in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
-
+		 
+		 
+--- Timed LTL model checking
+---  Show that 'temp-ok' is always saisfied for the first 5 ticks
+---  temp-ok == temperature of coffee is between 65 and 95 degrees
 (hmc cs1 |=t [](temp-ok) in time <= 5 using euler stepsize 1.0 discreteswitch nonaccurate .)
-
-(hrew cs1 in time <= 10 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 ---Place your commands above
 ---

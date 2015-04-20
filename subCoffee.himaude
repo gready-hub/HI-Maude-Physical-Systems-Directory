@@ -4,9 +4,12 @@
 ***
 *** Author: Gary Read
 ***
-*** Last Edit: 03/04/2015
+*** Last Edit: 20/04/2015
 ***
-*** see page 22 from "..\Dissertation\Resources\techreport-casestudy.pdf"
+*** Here we extend the work done previously in the coffee.himaude
+*** module to have a heater controlled by the effort (temperature)
+*** of the vessel (cup/coffee).
+***
 *** #############################
 
 (homod THERMO-SYSTEM is
@@ -110,13 +113,14 @@ endhom)
 	pr FLOAT .
 	inc THERMO-SYSTEM .
 
-	ops cs1 cs2 : -> GlobalSystem .
+	ops cs1-effort cs1-flow : -> GlobalSystem .
 	op zzDataCol : -> Oid .
 	ops coffeeObj roomObj convObj condObj heatObj : -> Oid .
 
 	op sm : -> Oid . --- System Manager required for HI-Maude
 
-	eq cs2 = {
+	--- Get flow data
+	eq cs1-flow = {
 				< coffeeObj : Coffee |	effort : 5.0,
 												effT : 0.0, 
 												effP : 0.0,
@@ -163,7 +167,8 @@ endhom)
 				< zzDataCol : DataCollector | source : (heatObj condObj convObj), time : 0.0, result : "", dataShown : flow >
 			} .
 
-	eq cs1 = {
+	--- Get effort data
+	eq cs1-effort = {
 				< coffeeObj : Coffee |	effort : 5.0,
 												effT : 0.0, 
 												effP : 0.0,
@@ -211,14 +216,5 @@ endhom)
 			} .
 
 endhom)
-
-eof .
-
-****************
-*** ANALYSIS ***
-****************
-
---- Simulate from CS1 for 100 ticks
-(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 eof .
