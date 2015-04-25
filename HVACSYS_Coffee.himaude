@@ -1,0 +1,282 @@
+*** #############################
+*** A toy model HVAC system. combined with coffee.himaude
+***
+*** Author: Gary Read
+***
+*** Start: 21/04/2015 
+*** Last Edit: 21/04/2015
+***
+*** Here we combine our discrete heater/cooler to the coffee.himaude module
+*** that models the physical interactions between a cup of coffee in a closed
+*** room. Together we can model the heating/cooling of a cup of coffee in an
+*** air-conditioned or heated room
+***
+*** see page 22 from "..\Dissertation\Resources\techreport-casestudy.pdf"
+*** #############################
+
+(homod HVACSYS is
+	pr FLOAT .
+	inc HYBRID-LIB .
+	
+	*** Heater states
+	sort onOffStatusType .
+	ops heating cooling off : -> onOffStatusType .
+	
+	*** Constant variables
+	op heatingFlowRate : -> Float .
+	op coolingFlowRate : -> Float .
+	op offFlowRate : -> Float .
+	op lowTempVal : -> Float .
+	op highTempVal : -> Float .
+	
+	eq heatingFlowRate = 10.0 .
+	eq coolingFlowRate = -5.0 .
+	eq offFlowRate = 0.0 .
+	eq lowTempVal = 50.0 .
+	eq highTempVal = 100.0 .
+	
+	vars CONFIG REST : Configuration . *** Placeholders?
+	
+	*** ###############################
+	***         ThermalEntity
+	*** ###############################
+	var TE : Oid .
+	vars SF, MASS, HC : Float . --- sum of heat flow, mass, heat cap
+	
+	class ThermalEntity | heatCap : Float, mass : Float .
+	subclass ThermalEntity < PhysicalEntity .
+	
+	eq effortDyn(< TE : ThermalEntity | heatCap : HC, mass : MASS >, SF) 
+		= SF / (MASS * HC) .
+		
+	*** ###############################
+	***       ThermalInteraction
+	*** ###############################
+	class ThermalInteraction | area : Float .
+	subclass ThermalInteraction < PhysicalInteraction .
+	
+	
+	*** ###############################
+	***             Room
+	*** ###############################
+	vars ROOM : Oid . *** HVAC and room object id's
+	vars TEMP EFF SF : Float . *** Effort, heat flow rate, sum of flows
+
+	class Room .
+	subclass Room < ThermalEntity .
+
+	
+	*** ###############################
+	***             Coffee
+	*** ###############################
+	class Coffee .
+	subclass Coffee < ThermalEntity .
+
+	*** ###############################
+	***           Convection
+	*** ###############################
+	var CONV : Oid .
+	vars CC A T1 T2 : Float . --- Convection coef, area, temp of T1 and T2
+	
+	class Convection | convCoef : Float .
+	subclass Convection < ThermalInteraction .
+	
+	eq flowDyn(< CONV : Convection | area : A, convCoef : CC >, T1, T2) 
+		= CC * A * (T1 - T2) .
+
+		
+	*** ###############################
+	***          Conduction
+	*** ###############################
+	var COND : Oid .
+	vars K A L : Float .
+	
+	class Conduction | thermalCond : Float, thickness : Float .
+	subclass Conduction < ThermalInteraction .
+	
+	eq flowDyn(< COND : Conduction | area : A, thermalCond : K, thickness : L >, T1, T2) 
+		= (K * A * (T1 - T2)) / L .
+		
+		
+	*** ###############################
+	***             Heater
+	*** ###############################
+	vars HTR : Oid .
+	var S : onOffStatusType .
+	vars HTRRT HTRSP HT LT : Float .
+
+	class Heater | state : onOffStatusType, heatFlowRate : Float, lowTemp : Float, highTemp : Float .
+	subclass Heater < FlowSource .
+
+	*** Heater dynamics
+	eq flowDyn(< HTR : Heater | state : heating, heatFlowRate : HTRRT, lowTemp : LT, highTemp : HT >, EFF) = 
+	   heatingFlowRate .
+	   
+	eq flowDyn(< HTR : Heater | state : cooling, heatFlowRate : HTRRT, lowTemp : LT, highTemp : HT >, EFF) = 
+	   coolingFlowRate .
+
+	eq flowDyn(< HTR : Heater | state : off, heatFlowRate : HTRRT, lowTemp : LT, highTemp : HT >, EFF) = 
+		offFlowRate .
+
+		
+	*** ###############################
+	***         Rewrite Rules
+	*** ###############################
+	crl[heater-cooling] :
+
+		< ROOM : Room | effort : TEMP >
+		< HTR : Heater | entity : ROOM, state : heating, highTemp : HT >
+
+		=>
+		< ROOM : Room | >
+		< HTR : Heater | state : cooling, heatFlowRate : -5.0 >
+
+		if TEMP >=  HT .
+   
+	crl[heater-on] : 
+
+		< ROOM : Room | effort : TEMP > 
+		< HTR : Heater | entity : ROOM, state : cooling, lowTemp : LT >
+
+		=>
+		< ROOM : Room | >    
+		< HTR : Heater | state : heating, heatFlowRate : 1.0 >
+
+		if TEMP <= LT .
+	
+	
+	*** ###############################
+	***         Discrete Events
+	*** ###############################
+	eq timeCanAdvanceMult(
+		< HTR : Heater | entity : ROOM, state : S, lowTemp : LT, highTemp : HT >
+		< ROOM : Room | effort : TEMP > REST )
+		= 
+		((S == heating and TEMP <= HT) or (S == cooling and TEMP >= LT)) and timeCanAdvanceMult(REST) .
+
+	---(  This is the same as above
+	--- eq timeCanAdvanceMult(
+		--- < HTR : Heater | entity : ROOM, state : heating, lowTemp : LT, highTemp : HT >
+		--- < ROOM : Room | effort : TEMP > REST )
+		--- = 
+		--- (TEMP <= HT) and timeCanAdvanceMult(REST) .
+		
+	--- eq timeCanAdvanceMult(
+		--- < HTR : Heater | entity : ROOM, state : cooling, lowTemp : LT, highTemp : HT >
+		--- < ROOM : Room | effort : TEMP > REST ) 
+		--- = 
+		--- (TEMP >= LT) and timeCanAdvanceMult(REST) .
+	---)
+
+endhom)
+
+*** ########################################################
+
+(homod SCENE is
+	inc HVACSYS .
+
+	op sm : -> Oid . *** System Manager required for HI-Maude
+	
+	ops cs1-effort cs1-flow : -> GlobalSystem . *** Case studie objects
+	op zzDataCol : -> Oid . *** Data collector 
+
+	*** Case study one: Room with Heater, maintaining temp of 50c <-> 100c
+	ops roomObj coffeeObj convObj condObj HTR : -> Oid .
+		
+	eq cs1-effort = {
+			< HTR : Heater |	flow : 0.0,
+								entity : roomObj,
+								floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+								edb : no,
+								contDyn : component,
+								state : cooling,
+								heatFlowRate : 0.0,
+								lowTemp : lowTempVal,
+								highTemp : highTempVal >
+								
+			< roomObj : Room |	effort : 20.0,
+								effT : 0.0, 
+								effP : 0.0,
+								edb : no,
+								heatCap : 1.05,
+								mass : 38.4 >
+										
+			< coffeeObj : Coffee |	effort : 95.0,
+									effT : 0.0, 
+									effP : 0.0,
+									edb : no,
+									heatCap : 4.2,
+									mass : 1.5 >
+
+			< convObj : Convection |	flow : 0.0,
+										entity1 : roomObj, 
+										entity2 : coffeeObj, 
+										floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+										edb : no,
+										contDyn : component,
+										area : 0.5, 
+										convCoef : 0.02 >
+							
+			< condObj : Conduction |	flow : 0.0,
+										entity1 : roomObj, 
+										entity2 : coffeeObj, 
+										floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+										edb : no,
+										contDyn : component,
+										area : 0.5, 
+										thermalCond : 0.0015, 
+										thickness : 0.005 >
+
+			< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+		} .
+		
+	eq cs1-flow = {
+			< HTR : Heater |	flow : 0.0,
+								entity : roomObj,
+								floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+								edb : no,
+								contDyn : component,
+								state : cooling,
+								heatFlowRate : 0.0,
+								lowTemp : lowTempVal,
+								highTemp : highTempVal >
+								
+			< roomObj : Room |	effort : 20.0,
+								effT : 0.0, 
+								effP : 0.0,
+								edb : no,
+								heatCap : 1.05,
+								mass : 38.4 >
+										
+			< coffeeObj : Coffee |	effort : 95.0,
+									effT : 0.0, 
+									effP : 0.0,
+									edb : no,
+									heatCap : 4.2,
+									mass : 1.5 >
+
+			< convObj : Convection |	flow : 0.0,
+										entity1 : roomObj, 
+										entity2 : coffeeObj, 
+										floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+										edb : no,
+										contDyn : component,
+										area : 0.5, 
+										convCoef : 0.02 >
+							
+			< condObj : Conduction |	flow : 0.0,
+										entity1 : roomObj, 
+										entity2 : coffeeObj, 
+										floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+										edb : no,
+										contDyn : component,
+										area : 0.5, 
+										thermalCond : 0.0015, 
+										thickness : 0.005 >
+
+			< zzDataCol : DataCollector | source : (HTR convObj condObj), time : 0.0, result : "", dataShown : flow >
+		} .
+
+endhom)
+
+eof .

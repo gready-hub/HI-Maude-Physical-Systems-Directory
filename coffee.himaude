@@ -105,7 +105,7 @@ endhom)
 											thermalCond : 0.0015, 
 											thickness : 0.005 >
 
-			< convObj : Convection |	flow : 0.0,
+				< convObj : Convection |	flow : 0.0,
 											entity1 : roomObj, 
 											entity2 : coffeeMug, 
 											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
@@ -130,38 +130,38 @@ endhom)
 
 	--- Single coffee object
 	eq cs2 = {
-			< roomObj : Room |	effort : 20.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no,
-											heatCap : 1.05,
-											mass : 38.4 >
-									
-				< coffeeObj : Coffee |	effort : 95.0,
-												effT : 0.0, 
-												effP : 0.0,
-												edb : no,
-												heatCap : 4.2,
-												mass : 0.45 >
+					< roomObj : Room |	effort : 20.0,
+													effT : 0.0, 
+													effP : 0.0,
+													edb : no,
+													heatCap : 1.05,
+													mass : 38.4 >
+											
+					< coffeeObj : Coffee |	effort : 95.0,
+													effT : 0.0, 
+													effP : 0.0,
+													edb : no,
+													heatCap : 4.2,
+													mass : 0.45 >
 
-				< convObj : Convection |	flow : 0.0,
-											entity1 : roomObj, 
-											entity2 : coffeeObj, 
-											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-											edb : no,
-											contDyn : component,
-											area : 0.5, 
-											convCoef : 0.02 >
-								
-				< condObj : Conduction |	flow : 0.0,
-											entity1 : roomObj, 
-											entity2 : coffeeObj, 
-											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-											edb : no,
-											contDyn : component,
-											area : 0.5, 
-											thermalCond : 0.0015, 
-											thickness : 0.005 >
+					< convObj : Convection |	flow : 0.0,
+												entity1 : roomObj, 
+												entity2 : coffeeObj, 
+												floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+												edb : no,
+												contDyn : component,
+												area : 0.5, 
+												convCoef : 0.02 >
+									
+					< condObj : Conduction |	flow : 0.0,
+												entity1 : roomObj, 
+												entity2 : coffeeObj, 
+												floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+												edb : no,
+												contDyn : component,
+												area : 0.5, 
+												thermalCond : 0.0015, 
+												thickness : 0.005 >
 
 				< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
 			} .
