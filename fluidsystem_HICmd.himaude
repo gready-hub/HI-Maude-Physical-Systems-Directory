@@ -3,11 +3,10 @@ load fluidsystem.himaude .
 ---
 ---Place your commands below
 
---- Simulate from cs1 for 500 ticks
-(hrew cs1 in time <= 500 using euler stepsize 0.1 discreteswitch nonaccurate .)
-
---- Simulate from cs2 for 500 ticks
-(hrew cs2 in time <= 500 using euler stepsize 0.01 discreteswitch nonaccurate .)
+--- Compare the discharge rate between ROUND, SHORT, and SHARP outlets (Respectively)
+(hrew cs1-effort in time <= 550 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs2-effort in time <= 550 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs3-effort in time <= 550 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 ---Place your commands above
 ---
