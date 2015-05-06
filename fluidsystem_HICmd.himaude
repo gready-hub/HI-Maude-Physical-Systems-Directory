@@ -4,10 +4,28 @@ load fluidsystem.himaude .
 ---Place your commands below
 
 --- Compare the discharge rate between ROUND, SHORT, and SHARP outlets (Respectively)
-(hrew cs1-effort in time <= 550 using euler stepsize 1.0 discreteswitch nonaccurate .)
-(hrew cs2-effort in time <= 550 using euler stepsize 1.0 discreteswitch nonaccurate .)
-(hrew cs3-effort in time <= 550 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs1-effort in time <= 550 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs2-effort in time <= 550 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs3-effort in time <= 550 using euler stepsize 0.1 discreteswitch nonaccurate .)
 
+--- Find the time the top container is empty
+(hfind earliest cs1-effort =>* {C:Configuration 
+		< headerTank : FluidEntity | effort : EFF:Float >
+	} such that (abs(EFF:Float) < 0.1)
+   using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hfind earliest cs2-effort =>* {C:Configuration 
+		< headerTank : FluidEntity | effort : EFF:Float >
+	} such that (abs(EFF:Float) < 0.1)
+   using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hfind earliest cs3-effort =>* {C:Configuration 
+		< headerTank : FluidEntity | effort : EFF:Float >
+	} such that (abs(EFF:Float) < 0.1)
+   using euler stepsize 0.1 discreteswitch nonaccurate .)
+   
+--- Compare different ofirice area
+(hrew cs4-effort in time <= 1000 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs5-effort in time <= 1000 using euler stepsize 1.0 discreteswitch nonaccurate .)
+   
 ---Place your commands above
 ---
 q .

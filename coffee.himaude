@@ -56,120 +56,141 @@ endhom)
 	pr FLOAT .
 	inc THERMO-SYSTEM .
 
-	op cs1 : -> GlobalSystem .
-	op cs2 : -> GlobalSystem .
+	ops cs1 cs2 cs3 cs4 : -> GlobalSystem .
 	op zzDataCol : -> Oid .
 	ops roomObj coffeeObj coffeeMug convObj condObj heaterObj : -> Oid .
 
 	op sm : -> Oid . --- System Manager required for HI-Maude
 
 	--- Multiple coffee objects
-	eq cs1 = {
+	eq cs4 = {
 				< roomObj : Room |	effort : 20.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no,
-											heatCap : 1.05,
-											mass : 38.4 >
+					effT : 0.0, effP : 0.0, edb : no,
+					heatCap : 1.05, mass : 38.4 >
 									
 				< coffeeObj : Coffee |	effort : 95.0,
-												effT : 0.0, 
-												effP : 0.0,
-												edb : no,
-												heatCap : 4.2,
-												mass : 0.45 >
+					effT : 0.0, effP : 0.0, edb : no,
+					heatCap : 4.2, mass : 0.45 >
 
 				< coffeeMug : Coffee |	effort : 0.0,
-												effT : 0.0, 
-												effP : 0.0,
-												edb : no,
-												heatCap : 4.2,
-												mass : 0.2 >
+					effT : 0.0, effP : 0.0, edb : no,
+					heatCap : 4.2, mass : 0.2 >
 
 				< convObj : Convection |	flow : 0.0,
-											entity1 : roomObj, 
-											entity2 : coffeeObj, 
-											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-											edb : no,
-											contDyn : component,
-											area : 0.5, 
-											convCoef : 0.02 >
+					entity1 : roomObj, entity2 : coffeeObj, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no, contDyn : component,
+					area : 0.5, convCoef : 0.02 >
 								
 				< condObj : Conduction |	flow : 0.0,
-											entity1 : roomObj, 
-											entity2 : coffeeObj, 
-											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-											edb : no,
-											contDyn : component,
-											area : 0.5, 
-											thermalCond : 0.0015, 
-											thickness : 0.005 >
+					entity1 : roomObj, entity2 : coffeeObj, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no, contDyn : component,
+					area : 0.5, thermalCond : 0.0015, 
+					thickness : 0.005 >
 
 				< convObj : Convection |	flow : 0.0,
-											entity1 : roomObj, 
-											entity2 : coffeeMug, 
-											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-											edb : no,
-											contDyn : component,
-											area : 0.5, 
-											convCoef : 0.02 >
+					entity1 : roomObj, entity2 : coffeeMug, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no, contDyn : component,
+					area : 0.5, convCoef : 0.02 >
 								
 				< condObj : Conduction |	flow : 0.0,
-											entity1 : roomObj, 
-											entity2 : coffeeMug, 
-											floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-											edb : no,
-											contDyn : component,
-											area : 0.5, 
-											thermalCond : 0.0015, 
-											thickness : 0.005 >
+					entity1 : roomObj, entity2 : coffeeMug, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no, contDyn : component,
+					area : 0.5, thermalCond : 0.0015, 
+					thickness : 0.005 >
 
-
-				< zzDataCol : DataCollector | source : (convObj condObj), time : 0.0, result : "", dataShown : flow >
+				---< zzDataCol : DataCollector | source : (coffeeObj coffeeMug roomObj), time : 0.0, result : "", dataShown : effort >
+				< zzDataCol : DataCollector | source : (convObj condObj convObj condObj), time : 0.0, result : "", dataShown : flow >
 			} .
 
 	--- Single coffee object
-	eq cs2 = {
+	eq cs1 = {
 					< roomObj : Room |	effort : 20.0,
-													effT : 0.0, 
-													effP : 0.0,
-													edb : no,
-													heatCap : 1.05,
-													mass : 38.4 >
+						effT : 0.0, effP : 0.0, edb : no,
+						heatCap : 1.05, mass : 38.4 >
 											
 					< coffeeObj : Coffee |	effort : 95.0,
-													effT : 0.0, 
-													effP : 0.0,
-													edb : no,
-													heatCap : 4.2,
-													mass : 0.45 >
+						effT : 0.0, effP : 0.0, edb : no,
+						heatCap : 4.2, mass : 0.45 >
 
 					< convObj : Convection |	flow : 0.0,
-												entity1 : roomObj, 
-												entity2 : coffeeObj, 
-												floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-												edb : no,
-												contDyn : component,
-												area : 0.5, 
-												convCoef : 0.02 >
+						entity1 : roomObj, entity2 : coffeeObj, 
+						floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+						edb : no, contDyn : component,
+						area : 0.5, convCoef : 0.02 >
 									
 					< condObj : Conduction |	flow : 0.0,
-												entity1 : roomObj, 
-												entity2 : coffeeObj, 
-												floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-												edb : no,
-												contDyn : component,
-												area : 0.5, 
-												thermalCond : 0.0015, 
-												thickness : 0.005 >
+						entity1 : roomObj, entity2 : coffeeObj, 
+						floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+						edb : no, contDyn : component,
+						area : 0.5, thermalCond : 0.0015, 
+						thickness : 0.005 >
 
-				< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+				---< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+				< zzDataCol : DataCollector | source : (convObj condObj), time : 0.0, result : "", dataShown : flow >
+			} .
+			
+	--- Single small coffee cup
+	eq cs2 = {
+					< roomObj : Room |	effort : 20.0,
+						effT : 0.0, effP : 0.0, edb : no,
+						heatCap : 1.05, mass : 38.4 >
+											
+					< coffeeObj : Coffee |	effort : 95.0,
+						effT : 0.0, effP : 0.0, edb : no,
+						heatCap : 4.2, mass : 0.45 >
+
+					< convObj : Convection |	flow : 0.0,
+						entity1 : roomObj, entity2 : coffeeObj, 
+						floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+						edb : no, contDyn : component,
+						area : 0.5, convCoef : 0.02 >
+									
+					< condObj : Conduction |	flow : 0.0,
+						entity1 : roomObj, entity2 : coffeeObj, 
+						floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+						edb : no, contDyn : component,
+						area : 0.2, thermalCond : 0.0015, 
+						thickness : 0.003 >
+
+				---< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+				< zzDataCol : DataCollector | source : (convObj condObj), time : 0.0, result : "", dataShown : flow >
+			} .
+			
+	--- Single large coffee cup
+	eq cs3 = {
+					< roomObj : Room |	effort : 20.0,
+						effT : 0.0, effP : 0.0, edb : no,
+						heatCap : 1.05, mass : 38.4 >
+											
+					< coffeeObj : Coffee |	effort : 95.0,
+						effT : 0.0, effP : 0.0, edb : no,
+						heatCap : 4.2, mass : 0.45 >
+
+					< convObj : Convection |	flow : 0.0,
+						entity1 : roomObj, entity2 : coffeeObj, 
+						floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+						edb : no, contDyn : component,
+						area : 0.5, convCoef : 0.02 >
+									
+					< condObj : Conduction |	flow : 0.0,
+						entity1 : roomObj, entity2 : coffeeObj, 
+						floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+						edb : no, contDyn : component,
+						area : 1.2, thermalCond : 0.0015, 
+						thickness : 0.01 >
+
+				---< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+				< zzDataCol : DataCollector | source : (convObj condObj), time : 0.0, result : "", dataShown : flow >
 			} .
 
 endhom)
 
 **************************
-*** LTL model checking ***
+***   Model checking   ***
 **************************
 (homod MODEL-CHECKING is
 	inc SCENE .

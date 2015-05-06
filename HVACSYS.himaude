@@ -126,65 +126,24 @@ endhom)
 
 	op sm : -> Oid . *** System Manager required for HI-Maude
 	
-	ops cs1 cs1-effort cs1-flow : -> GlobalSystem . *** Case studie objects
+	op cs1 : -> GlobalSystem . *** Case studie objects
 	op zzDataCol : -> Oid . *** Data collector 
+	
+	ops ROOM HTR : -> Oid .
 
 	*** Case study one: Room with Heater, maintaining temp of 50c <-> 100c
-	ops ROOM HTR : -> Oid .
 	eq cs1 = {
 				< ROOM : Room |	effort : 0.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no >
+					effT : 0.0, effP : 0.0, edb : no >
 
-				< HTR : Heater |	flow : 0.0,
-									entity : ROOM,
-									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-									edb : no,
-									contDyn : component,
-									state : heating,
-									heatFlowRate : 0.0,
-									lowTemp : lowTempVal,
-									highTemp : highTempVal >
+				< HTR : Heater | flow : 0.0,
+					entity : ROOM,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no, contDyn : component,
+					state : heating, heatFlowRate : 0.0,
+					lowTemp : lowTempVal, highTemp : highTempVal >
 
-				< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
-	} .
-
-	eq cs1-effort = {
-				< ROOM : Room |	effort : 0.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no >
-
-				< HTR : Heater |	flow : 0.0,
-									entity : ROOM,
-									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-									edb : no,
-									contDyn : component,
-									state : heating,
-									heatFlowRate : 0.0,
-									lowTemp : lowTempVal,
-									highTemp : highTempVal >
-
-				< zzDataCol : DataCollector | source : (ROOM), time : 0.0, result : "", dataShown : effort >
-	} .
-
-	eq cs1-flow = {
-				< ROOM : Room |	effort : 0.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no >
-
-				< HTR : Heater |	flow : 0.0,
-									entity : ROOM,
-									floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-									edb : no,
-									contDyn : component,
-									state : heating,
-									heatFlowRate : 0.0,
-									lowTemp : lowTempVal,
-									highTemp : highTempVal >
-
+				---< zzDataCol : DataCollector | source : (ROOM), time : 0.0, result : "", dataShown : effort >
 				< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
 	} .
 
