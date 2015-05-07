@@ -2,9 +2,22 @@ load hi-maude.maude .
 load HVACSYS_Coffee.himaude .
 ---
 ---Place your commands below
+---(
+--- Simulate cs1, looking for states that are below HOTCOFFEE
+(hsearch [1] cs1 =>* {C:Configuration 
+	< coffeeObj : Coffee | effort : EFF:Float >}
+   such that ( EFF:Float < 65.0 )
+	in time <= 3600 using euler stepsize 0.1 discreteswitch nonaccurate .)
 
-(hrew cs1-effort in time <= 500 using euler stepsize 1.0 discreteswitch nonaccurate .)
-(hrew cs1-flow in time <= 500 using euler stepsize 1.0 discreteswitch nonaccurate .)
+--- Simulate cs2 until the coffee is 95 degrees
+(hfind earliest cs2 =>* {C:Configuration 
+	< coffeeObj : Coffee | effort : EFF:Float >}
+   such that ( EFF:Float >= 95.0 )
+   using euler stepsize 0.1 discreteswitch nonaccurate .)
+)---
+--- Simulate cs1 and cs2 for 500 seconds
+(hrew cs1 in time <= 5000 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs2 in time <= 5000 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 ---Place your commands above
 ---

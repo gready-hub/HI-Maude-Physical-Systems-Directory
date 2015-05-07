@@ -73,25 +73,19 @@
 	***         Rewrite Rules
 	*** ###############################
 	crl[heater-cooling] :
-
 		< ROOM : Room | effort : TEMP >
 		< HTR : Heater | entity : ROOM, state : heating, highTemp : HT >
-
 		=>
 		< ROOM : Room | >
 		< HTR : Heater | state : cooling, heatFlowRate : -5.0 >
-
 		if TEMP >=  HT .
    
 	crl[heater-on] : 
-
 		< ROOM : Room | effort : TEMP > 
 		< HTR : Heater | entity : ROOM, state : cooling, lowTemp : LT > 
-
 		=>
 		< ROOM : Room | >    
 		< HTR : Heater | state : heating, heatFlowRate : 1.0 > 
-
 		if TEMP <= LT .
 	
 	*** ###############################
@@ -101,7 +95,8 @@
 		< HTR : Heater | entity : ROOM, state : S, lowTemp : LT, highTemp : HT >
 		< ROOM : Room | effort : TEMP > REST )
 		= 
-		((S == heating and TEMP <= HT) or (S == cooling and TEMP >= LT)) and timeCanAdvanceMult(REST) .
+		((S == heating and TEMP <= HT) or (S == cooling and TEMP >= LT)) 
+		and timeCanAdvanceMult(REST) .
 
 	---(  This is the same as above
 	--- eq timeCanAdvanceMult(
@@ -143,8 +138,8 @@ endhom)
 					state : heating, heatFlowRate : 0.0,
 					lowTemp : lowTempVal, highTemp : highTempVal >
 
-				---< zzDataCol : DataCollector | source : (ROOM), time : 0.0, result : "", dataShown : effort >
-				< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
+				< zzDataCol : DataCollector | source : (ROOM), time : 0.0, result : "", dataShown : effort >
+				---< zzDataCol : DataCollector | source : (HTR), time : 0.0, result : "", dataShown : flow >
 	} .
 
 endhom)

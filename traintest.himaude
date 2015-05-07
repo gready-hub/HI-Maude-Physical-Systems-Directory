@@ -31,20 +31,19 @@ endhom) --- END UTILS
 
 	***================================
 	class Segment |	length : Float .
-	
 	subclass Segment < PhysicalEntity .
 		 
 	***================================
 	class Train |	trainStatus : TrainStatus,
 					length : Float,
 					acc : Float .
-	
 	subclass Train < PhysicalEntity .
 	
 	***================================
 	class Translation .
-	
 	subclass Translation < PhysicalInteraction .
+	
+	
 	
 endhom) --- END CLASS-DEF
  
@@ -62,26 +61,23 @@ endhom) --- END CLASS-DEF
 	
 	eq cs1 = { 
 		< train : Train  | effort : 0.0,
-								effT : 0.0, 
-								effP : 0.0,
-								edb : no,
-								 >
+			effT : 0.0, 
+			effP : 0.0,
+			edb : no >
 
 		< segment : Segment | effort : 0.0,
-								effT : 0.0, 
-								effP : 0.0,
-								edb : no,
-								 >
+			effT : 0.0, 
+			effP : 0.0,
+			edb : no >
 		
 		< translation : Translation | flow : 0.0,
-								entity1 : roomObj,
-								entity2 : coffeeObj,
-								floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-								edb : no,
-								contDyn : component,
-								 >
+			entity1 : train,
+			entity2 : segment,
+			floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+			edb : no,
+			contDyn : component >
 		
-		< zzDataCol : DataCollector | source : (train), time : 0.0, result : "", dataShown : flow >
+		< zzDataCol : DataCollector | source : (train), time : 0.0, result : "", dataShown : effort >
 	} .
 	
 endhom)

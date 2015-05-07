@@ -44,13 +44,15 @@
 			= 0.0
 		if V1 < 0.0 .
 		
+	
+		
 endhom)
 
 (homod SCENE is
 	pr FLOAT .
 	inc PUMP-FLUID-SYSTEM .
 
-	ops cs1 cs2 : -> GlobalSystem .
+	ops cs1-effort cs1-flow : -> GlobalSystem .
 	op zzDataCol : -> Oid .
 	ops headerTank footerTank gravFlow : -> Oid .
 
@@ -67,66 +69,64 @@ endhom)
 	eq DCOEF = 0.81 .
 
 	--- Get effort data
-	eq cs1 = {
-				< headerTank : FluidEntity |	effort : 500000.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no,
-											area : HTAREA,
-											height : HTHEIGHT,
-											effort : HTAREA * HTHEIGHT	>
+	eq cs1-effort = {
+				< headerTank : FluidEntity | effort : 500000.0,
+					effT : 0.0, 
+					effP : 0.0,
+					edb : no,
+					area : HTAREA,
+					height : HTHEIGHT,
+					effort : HTAREA * HTHEIGHT	>
 									
 				< footerTank : FluidEntity |	effort : 0.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no,
-											area : FTAREA,
-											height : FTHEIGHT >
+					effT : 0.0, 
+					effP : 0.0,
+					edb : no,
+					area : FTAREA,
+					height : FTHEIGHT >
 									
-				< gravFlow : GravitationalPipeFlow |	flow : 0.0,
-														entity1 : headerTank,
-														entity2 : footerTank,
-														floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-														edb : no,
-														contDyn : component,
-														headerTankArea : HTAREA,
-														gravAcc : GA,
-														orificeArea : OAREA,
-														dischargeCoef : DCOEF >
+				< gravFlow : GravitationalPipeFlow | flow : 0.0,
+					entity1 : headerTank,
+					entity2 : footerTank,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,
+					contDyn : component,
+					headerTankArea : HTAREA,
+					gravAcc : GA,
+					orificeArea : OAREA,
+					dischargeCoef : DCOEF >
 
 				< zzDataCol : DataCollector | source : (headerTank footerTank), time : 0.0, result : "",dataShown : effort >
-				---< zzDataCol : DataCollector | source : (gravFlow), time : 0.0, result : "",dataShown : flow >
 			} .
 
 	--- Get flow data
-	eq cs2 = {
-				< headerTank : FluidEntity |	effort : 500000.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no,
-											area : HTAREA,
-											height : HTHEIGHT,
-											effort : HTAREA * HTHEIGHT	>
+	eq cs1-flow = {
+				< headerTank : FluidEntity | effort : 500000.0,
+					effT : 0.0, 
+					effP : 0.0,
+					edb : no,
+					area : HTAREA,
+					height : HTHEIGHT,
+					effort : HTAREA * HTHEIGHT	>
 									
-				< footerTank : FluidEntity |	effort : 0.0,
-											effT : 0.0, 
-											effP : 0.0,
-											edb : no,
-											area : FTAREA,
-											height : FTHEIGHT >
+				< footerTank : FluidEntity | effort : 0.0,
+					effT : 0.0, 
+					effP : 0.0,
+					edb : no,
+					area : FTAREA,
+					height : FTHEIGHT >
 									
-				< gravFlow : GravitationalPipeFlow |	flow : 0.0,
-														entity1 : headerTank,
-														entity2 : footerTank,
-														floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-														edb : no,
-														contDyn : component,
-														headerTankArea : HTAREA,
-														gravAcc : GA,
-														orificeArea : OAREA,
-														dischargeCoef : DCOEF >
+				< gravFlow : GravitationalPipeFlow | flow : 0.0,
+					entity1 : headerTank,
+					entity2 : footerTank,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,
+					contDyn : component,
+					headerTankArea : HTAREA,
+					gravAcc : GA,
+					orificeArea : OAREA,
+					dischargeCoef : DCOEF >
 
-				---< zzDataCol : DataCollector | source : (headerTank footerTank), time : 0.0, result : "",dataShown : effort >
 				< zzDataCol : DataCollector | source : (gravFlow), time : 0.0, result : "",dataShown : flow >
 			} .
 			

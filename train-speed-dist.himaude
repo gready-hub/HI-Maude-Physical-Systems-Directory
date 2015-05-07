@@ -1,0 +1,132 @@
+*** #############################
+*** Model train system...
+***
+*** Author: Gary Read
+***
+*** Start: 25/03/2015 
+*** Last Edit: 25/03/2015
+*** #############################
+
+(homod HVACSYS is
+	pr FLOAT .
+	inc HYBRID-LIB .
+	
+	*** Train states
+	sort trainStatus .
+	ops accelerating decelerating constant stopped : -> trainStatus .
+
+	*** Track states
+	sort trackStatus .
+	ops go stop : -> trackStatus .
+	
+	*** Constant variables
+	op accelerationVal : -> Float .
+	op decelerationVal : -> Float .
+	op constantVal : -> Float .
+	op maxVal : -> Float .
+	op minVal : -> Float .
+	
+	eq accelerationVal = 5.0 .
+	eq decelerationVal = -5.0 .
+	eq constantVal = 0.0 .
+	eq maxVal = 100.0 .
+	eq minVal = 0.0 .
+	
+	vars CONFIG REST : Configuration . *** Placeholders?
+	
+	*** ###############################
+	***             Track
+	*** ###############################
+	vars TRACK : Oid . *** id of track
+	vars SPEED EFF SF DIST : Float . *** Effort, distance flow rate, sum of flows
+	
+	class Track | state : trackStatus .
+	subclass Track < PhysicalEntity .
+	
+	*** Track dynamics
+	eq effortDyn(< TRACK : Track | state : go >, SF)
+		= SF .
+		
+	*** Track dynamics
+	eq effortDyn(< TRACK : Track | state : stop >, SF)
+		= SF .
+		
+	*** ###############################
+	***             Train
+	*** ###############################
+	vars TRAIN : Oid .
+	var S : trainStatus .
+	vars ACCRT TRAINSP MIN MAX : Float .
+
+	class Train | state : trainStatus, acceleration : Float, minSpeed : Float, maxSpeed : Float .
+	subclass Train < FlowSource .
+
+	*** Train dynamics
+	eq flowDyn(< TRAIN : Train | state : accelerating, acceleration : ACCRT, minSpeed : MIN, maxSpeed : MAX >, EFF) =
+	   accelerationVal .
+	   
+	eq flowDyn(< TRAIN : Train | state : decelerating, acceleration : ACCRT, minSpeed : MIN, maxSpeed : MAX >, EFF) =
+	   decelerationVal .
+
+	eq flowDyn(< TRAIN : Train | state : constant, acceleration : ACCRT, minSpeed : MIN, maxSpeed : MAX >, EFF) =
+		constantVal .
+
+	*** ###############################
+	***         Rewrite Rules
+	*** ###############################
+	crl[train-constant] :
+		< TRACK : Track | effort : EFF, state : go >
+		< TRAIN : Train | entity : TRACK, state : accelerating, maxSpeed : MAX >
+		=>
+		< TRACK : Track | state : go >
+		< TRAIN : Train | state : constant, acceleration : constantVal >
+
+		if EFF >= MAX .
+
+	*** ###############################
+	***       Discrete Events
+	*** ###############################
+	eq timeCanAdvanceMult(
+		< TRACK : Track | effort : EFF, state : go >
+		< TRAIN : Train | entity : TRACK, state : accelerating, minSpeed : MIN, maxSpeed : MAX > REST )
+		= 
+		(EFF <= MAX) and timeCanAdvanceMult(REST) .
+
+endhom)
+
+*** ########################################################
+
+(homod SCENE is
+	inc HVACSYS .
+
+	op sm : -> Oid . *** System Manager required for HI-Maude
+	
+	ops cs1 : -> GlobalSystem . *** Case studie objects
+	op zzDataCol : -> Oid . *** Data collector 
+
+	*** Case study one: Track with Train...
+	ops TRACK TRAIN : -> Oid .
+	eq cs1 = {
+				< TRACK : Track | effort : 0.0,
+					effT : 0.0, 
+					effP : 0.0,
+					edb : no,
+					state : go >
+
+				< TRAIN : Train | flow : 0.0,
+					entity : TRACK,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,
+					contDyn : component,
+					state : accelerating,
+					acceleration : accelerationVal,
+					minSpeed : minVal,
+					maxSpeed : maxVal >
+
+				< zzDataCol : DataCollector | source : (TRACK), time : 0.0, result : "", dataShown : effort >
+				---< zzDataCol : DataCollector | source : (TRAIN), time : 0.0, result : "", dataShown : flow >
+	} .
+
+endhom)
+
+eof .

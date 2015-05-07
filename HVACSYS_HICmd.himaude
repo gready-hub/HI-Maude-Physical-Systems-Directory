@@ -4,22 +4,22 @@ load HVACSYS.himaude .
 ---Place your commands below
 
 *** Simulate from cs1 for 100 ticks with different stepsizes
-(hrew cs1 in time <= 100 using euler stepsize 10.0 discreteswitch nonaccurate .)
-(hrew cs1 in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
-(hrew cs1 in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
----(hrew cs1 in time <= 100 using euler stepsize 0.01 discreteswitch nonaccurate .)
+(hrew cs1 in time <= 30 using euler stepsize 10.0 discreteswitch nonaccurate .)
+(hrew cs1 in time <= 30 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hrew cs1 in time <= 30 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs1 in time <= 30 using euler stepsize 0.01 discreteswitch nonaccurate .)
 
 *** Search for when the heater is in the off state = no solution
-(hsearch [1] cs1 =>* {C:Configuration 
+hsearch [1] cs1 =>* {C:Configuration 
 	< HTR : Heater | state : ST:onOffStatusType >}
 	such that (ST:onOffStatusType == off)
 	in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
 	
-*** Search for when the heater is in the heating state, over 100 ticks
-(hsearch [1] cs1 =>* {C:Configuration 
+*** Search for when the unit is in the cooling state, over 100 ticks
+(hsearch [40] cs1 =>* {C:Configuration 
 	< HTR : Heater | state : ST:onOffStatusType >}
-	such that (ST:onOffStatusType == heating)
-	in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+	such that (ST:onOffStatusType == off)
+	in time <= 30 using euler stepsize 1.0 discreteswitch nonaccurate .)
 	
 *** Find earliest time the heater state is cooling = ~10 ticks
 (hfind earliest cs1 =>* {C:Configuration
@@ -27,7 +27,11 @@ load HVACSYS.himaude .
 	such that (ST:onOffStatusType == cooling)
 	using euler stepsize 1.0 discreteswitch nonaccurate .)
 
+
 *** Check that the heater is never off (Similar to above) = true
-(hmc cs1 |=t [](~ hvac-off) in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
+(hmc cs1 |=t [](~ hvac-off) in time <= 100 using euler stepsize 0.1 discreteswitch nonaccurate .)
+
+*** Check that the heater keeps the room between max and min temps
+(hmc cs1 |=t [](~ temp-ok) in time <= 100 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 q .
