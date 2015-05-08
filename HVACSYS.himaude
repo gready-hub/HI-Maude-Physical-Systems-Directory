@@ -114,8 +114,6 @@
 
 endhom)
 
-*** ########################################################
-
 (homod SCENE is
 	inc HVACSYS .
 
@@ -143,8 +141,6 @@ endhom)
 	} .
 
 endhom)
-
-*** ########################################################
 
 (homod ROOM-HEATER-MODEL-CHECKING is
 	inc TIMED-MODEL-CHECKER .

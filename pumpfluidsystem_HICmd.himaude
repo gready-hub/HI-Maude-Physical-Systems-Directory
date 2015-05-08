@@ -3,7 +3,7 @@ load pumpfluidsystem.himaude .
 ---
 ---Place your commands below
 
-(hrew cs1 in time <= 500 using euler stepsize 0.1 discreteswitch nonaccurate .)
+(hrew cs1 in time <= 150 using euler stepsize 1.0 discreteswitch nonaccurate .)
 
 ---Place your commands above
 ---

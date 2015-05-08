@@ -16,14 +16,19 @@
 	pr FLOAT  .
 	inc HYBRID-LIB . --- provides effortDyn etc.
 	
+	sort onOffType .
+	ops on off : -> onOffType .
+	
 	class FluidEntity | area : Float, height : Float .
 	subclass FluidEntity < PhysicalEntity .
 
 	class GravitationalPipeFlow | orificeArea : Float, dischargeCoef : Float, headerTankArea : Float, gravAcc : Float .
 	subclass GravitationalPipeFlow < PhysicalInteraction .
 	
-	class Pump | onOff
+	class Pump | status : onOffType, maxVolume : Float, minVolume : Float .
+	subclass Pump < FlowSource .
 
+	*** Tanks
 	var HTANK FTANK : Oid . --- Header/Footer tank objects
 	vars SF, A, H : Float . --- sum of fluid flow, mass, heat cap
 
@@ -33,6 +38,16 @@
 	eq effortDyn(< FTANK : FluidEntity | area : A, height : H >, SF) 
 		= SF .
 		
+	*** Pump
+	vars PUMP : Oid .
+	
+	eq flowDyn (< PUMP : Pump | status : on >, SF)
+		= 8.0 .
+		
+	eq flowDyn (< PUMP : Pump | status : off >, SF)
+		= 0.0 .
+		
+	*** Gravitation flow though outlet
 	var GRAVFLOW : Oid . --- Grav pipe flow
 	vars HTAREA GA OA DCOEF V1 V2 : Float . --- header tank area, grav acc, orificeArea, dischargeCoef, volume of E1 and E2
 
@@ -43,8 +58,39 @@
 	ceq flowDyn(< GRAVFLOW : GravitationalPipeFlow | headerTankArea : HTAREA, gravAcc : GA, orificeArea : OA, dischargeCoef : DCOEF >, V1, V2) 
 			= 0.0
 		if V1 < 0.0 .
-		
+
+	*** ###############################
+	***         Rewrite Rules
+	*** ###############################
+	vars HTANK : Oid .
+	vars VOLUME MAXVOL MINVOL : Float .
+	var STATE : onOffType .
+	vars CONFIG REST : Configuration . *** Placeholders?
 	
+	crl[pump-off] :
+		< HTANK : FluidEntity | effort : VOLUME >
+		< PUMP : Pump | entity : HTANK, status : on, maxVolume : MAXVOL >
+		=>
+		< HTANK : FluidEntity | >
+		< PUMP : Pump | status : off >
+		if VOLUME >=  MAXVOL .
+   
+	crl[pump-on] :
+		< HTANK : FluidEntity | effort : VOLUME > 
+		< PUMP : Pump | entity : HTANK, status : off, minVolume : MINVOL > 
+		=>
+		< HTANK : FluidEntity | >    
+		< PUMP : Pump | status : on > 
+		if VOLUME <= MINVOL .
+	
+	*** ###############################
+	***       Discrete Events
+	*** ###############################
+	eq timeCanAdvanceMult(
+		< PUMP : Pump | entity : HTANK, status : STATE, minVolume : MINVOL, maxVolume : MAXVOL >
+		< HTANK : FluidEntity | effort : VOLUME > REST )
+		= 
+		((STATE == on and VOLUME <= MAXVOL) or (STATE == off and VOLUME >= MINVOL)) and timeCanAdvanceMult(REST) .
 		
 endhom)
 
@@ -52,9 +98,9 @@ endhom)
 	pr FLOAT .
 	inc PUMP-FLUID-SYSTEM .
 
-	ops cs1-effort cs1-flow : -> GlobalSystem .
+	ops cs1 cs2 : -> GlobalSystem .
 	op zzDataCol : -> Oid .
-	ops headerTank footerTank gravFlow : -> Oid .
+	ops headerTank footerTank gravFlow pump : -> Oid .
 
 	op sm : -> Oid .
 
@@ -62,46 +108,14 @@ endhom)
 
 	eq HTAREA = 2.0 * 2.0 .
 	eq HTHEIGHT = 1000.0 .
-	eq FTAREA = 0.5 * 0.5 .
+	eq FTAREA = 5.0 * 5.0 .
 	eq FTHEIGHT = 0.0 .
 	eq GA = 9.81 .
 	eq OAREA = 0.157 .
 	eq DCOEF = 0.81 .
 
-	--- Get effort data
-	eq cs1-effort = {
-				< headerTank : FluidEntity | effort : 500000.0,
-					effT : 0.0, 
-					effP : 0.0,
-					edb : no,
-					area : HTAREA,
-					height : HTHEIGHT,
-					effort : HTAREA * HTHEIGHT	>
-									
-				< footerTank : FluidEntity |	effort : 0.0,
-					effT : 0.0, 
-					effP : 0.0,
-					edb : no,
-					area : FTAREA,
-					height : FTHEIGHT >
-									
-				< gravFlow : GravitationalPipeFlow | flow : 0.0,
-					entity1 : headerTank,
-					entity2 : footerTank,
-					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
-					edb : no,
-					contDyn : component,
-					headerTankArea : HTAREA,
-					gravAcc : GA,
-					orificeArea : OAREA,
-					dischargeCoef : DCOEF >
-
-				< zzDataCol : DataCollector | source : (headerTank footerTank), time : 0.0, result : "",dataShown : effort >
-			} .
-
-	--- Get flow data
-	eq cs1-flow = {
-				< headerTank : FluidEntity | effort : 500000.0,
+	eq cs1 = {
+				< headerTank : FluidEntity | effort : 30.0,
 					effT : 0.0, 
 					effP : 0.0,
 					edb : no,
@@ -126,10 +140,18 @@ endhom)
 					gravAcc : GA,
 					orificeArea : OAREA,
 					dischargeCoef : DCOEF >
+					
+				< pump : Pump | flow : 0.0,
+					entity : headerTank,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					minVolume : 100.0,maxVolume : 136.0,
+					status : on >
 
-				< zzDataCol : DataCollector | source : (gravFlow), time : 0.0, result : "",dataShown : flow >
+				< zzDataCol : DataCollector | source : (headerTank footerTank), time : 0.0, result : "",dataShown : effort >
+				---< zzDataCol : DataCollector | source : (pump gravFlow), time : 0.0, result : "",dataShown : flow >
 			} .
-			
+
 endhom)
 
 eof .
