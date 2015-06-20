@@ -160,7 +160,7 @@ endhom)
 
 	op sm : -> Oid . *** System Manager required for HI-Maude
 	
-	ops cs1 cs2 : -> GlobalSystem . *** Case studie objects
+	ops cs1 cs2 cs1-flow cs2-flow : -> GlobalSystem . *** Case studie objects
 	op zzDataCol : -> Oid . *** Data collector 
 
 	*** Case study one: Room with Heater, maintaining temp of 50c <-> 100c
@@ -232,6 +232,74 @@ endhom)
 
 			< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
 			---< zzDataCol : DataCollector | source : (convObj condObj HTR), time : 0.0, result : "", dataShown : flow >
+		} .
+		
+		eq cs1-flow = {
+			< HTR : Heater |	flow : 0.0,
+				entity : roomObj,
+				floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+				edb : no,contDyn : component,
+				state : cooling,
+				heatFlowRate : 0.0,
+				lowTemp : lowTempVal,highTemp : highTempVal >
+								
+			< roomObj : Room |	effort : 20.0,
+				effT : 0.0,effP : 0.0,edb : no,
+				heatCap : 1.05,mass : 38.4 >
+										
+			< coffeeObj : Coffee |	effort : 95.0,
+				effT : 0.0, effP : 0.0,edb : no,
+				heatCap : 4.2,mass : 1.5 >
+
+			< convObj : Convection |	flow : 0.0,
+				entity1 : roomObj, entity2 : coffeeObj, 
+				floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+				edb : no,contDyn : component,
+				area : 0.5, convCoef : 0.02 >
+							
+			< condObj : Conduction |	flow : 0.0,
+				entity1 : roomObj, entity2 : coffeeObj, 
+				floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+				edb : no,contDyn : component,
+				area : 0.5, thermalCond : 0.0015, 
+				thickness : 0.005 >
+
+			---< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+			< zzDataCol : DataCollector | source : (convObj condObj HTR), time : 0.0, result : "", dataShown : flow >
+		} .
+		
+	eq cs2-flow = {
+			< HTR : Heater | flow : 0.0,
+				entity : roomObj,
+				floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+				edb : no,contDyn : component,
+				state : heating,
+				heatFlowRate : 0.0,
+				lowTemp : lowTempVal,highTemp : highTempValcs2 >
+								
+			< roomObj : Room | effort : 20.0,
+				effT : 0.0,effP : 0.0,edb : no,
+				heatCap : 1.05,mass : 38.4 >
+										
+			< coffeeObj : Coffee | effort : 20.0,
+				effT : 0.0, effP : 0.0,edb : no,
+				heatCap : 4.2,mass : 5.0 >
+
+			< convObj : Convection | flow : 0.0,
+				entity1 : roomObj, entity2 : coffeeObj, 
+				floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+				edb : no,contDyn : component,
+				area : 0.5, convCoef : 0.02 >
+							
+			< condObj : Conduction | flow : 0.0,
+				entity1 : roomObj, entity2 : coffeeObj, 
+				floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+				edb : no,contDyn : component,
+				area : 0.5, thermalCond : 0.0015,
+				thickness : 0.005 >
+
+			---< zzDataCol : DataCollector | source : (roomObj coffeeObj), time : 0.0, result : "", dataShown : effort >
+			< zzDataCol : DataCollector | source : (convObj condObj HTR), time : 0.0, result : "", dataShown : flow >
 		} .
 
 endhom)

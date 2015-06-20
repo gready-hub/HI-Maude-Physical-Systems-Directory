@@ -76,6 +76,7 @@
 	var STATE : onOffType .
 	vars CONFIG REST : Configuration . *** Placeholders?
 	
+
 	crl[heater-off] :
 		< COFFEE : Coffee | effort : TEMP >
 		< HTR : Heater | entity : COFFEE, status : on, highTemp : HT >
@@ -107,7 +108,7 @@ endhom)
 	pr FLOAT .
 	inc THERMO-SYSTEM .
 
-	ops cs1 cs2 : -> GlobalSystem .
+	ops cs1 cs2 cs1-flow cs2-flow : -> GlobalSystem .
 	op zzDataCol : -> Oid .
 	ops coffeeObj roomObj convObj condObj heatObj coffeeMug : -> Oid .
 
@@ -196,6 +197,91 @@ endhom)
 
 				< zzDataCol : DataCollector | source : (coffeeObj coffeeMug roomObj), time : 0.0, result : "", dataShown : effort >
 				---< zzDataCol : DataCollector | source : (heatObj condObj convObj condObj convObj), time : 0.0, result : "", dataShown : flow >
+			} .
+			
+	eq cs1-flow = {
+				< coffeeObj : Coffee | effort : 5.0,
+					effT : 0.0, effP : 0.0,edb : no,
+					heatCap : 4.2,mass : 0.45 >
+									
+				< roomObj : Room | effort : 50.0,
+					effT : 0.0, effP : 0.0,edb : no,
+					heatCap : 1.05,mass : 38.4 >
+
+				< convObj : Convection | flow : 0.0,
+					entity1 : roomObj, entity2 : coffeeObj, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					area : 0.05, convCoef : 0.02 >
+
+				< condObj : Conduction | flow : 0.0,
+					entity1 : roomObj,entity2 : coffeeObj,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					area : 0.05,thermalCond : 0.0015,
+					thickness : 0.005 >
+
+				< heatObj : Heater | flow : 0.0,
+					entity : coffeeObj,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					status : on,
+					lowTemp : 65.0,highTemp : 75.0,
+					heatFlowRate : 2.5 >
+
+				---< zzDataCol : DataCollector | source : (coffeeObj roomObj), time : 0.0, result : "", dataShown : effort >
+				< zzDataCol : DataCollector | source : (heatObj condObj convObj), time : 0.0, result : "", dataShown : flow >
+			} .
+	
+	eq cs2-flow = {
+				< coffeeObj : Coffee | effort : 5.0,
+					effT : 0.0, effP : 0.0,edb : no,
+					heatCap : 4.2,mass : 0.45 >
+					
+				< coffeeMug : Coffee | effort : 95.0,
+					effT : 0.0, effP : 0.0,edb : no,
+					heatCap : 4.2,mass : 0.90 >
+									
+				< roomObj : Room | effort : 50.0,
+					effT : 0.0, effP : 0.0,edb : no,
+					heatCap : 1.05,mass : 38.4 >
+
+				< convObj : Convection | flow : 0.0,
+					entity1 : roomObj, entity2 : coffeeObj, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					area : 0.05, convCoef : 0.02 >
+
+				< condObj : Conduction | flow : 0.0,
+					entity1 : roomObj,entity2 : coffeeObj,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					area : 0.05,thermalCond : 0.0015,
+					thickness : 0.005 >
+
+				< convObj : Convection | flow : 0.0,
+					entity1 : roomObj, entity2 : coffeeMug, 
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					area : 0.05, convCoef : 0.02 >
+
+				< condObj : Conduction | flow : 0.0,
+					entity1 : roomObj,entity2 : coffeeMug,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					area : 0.05,thermalCond : 0.0015,
+					thickness : 0.005 >
+					
+				< heatObj : Heater | flow : 0.0,
+					entity : coffeeObj,
+					floT1 : 0.0, floT2 : 0.0, floT3 : 0.0,
+					edb : no,contDyn : component,
+					status : on,
+					lowTemp : 65.0,highTemp : 75.0,
+					heatFlowRate : 2.5 >
+
+				---< zzDataCol : DataCollector | source : (coffeeObj coffeeMug roomObj), time : 0.0, result : "", dataShown : effort >
+				< zzDataCol : DataCollector | source : (heatObj condObj convObj condObj convObj), time : 0.0, result : "", dataShown : flow >
 			} .
 endhom)
 
